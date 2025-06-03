@@ -1,0 +1,35 @@
+task: automin_task_a
+
+# Use local CSV loader
+dataset_path: csv
+dataset_name: null
+dataset_kwargs:
+  data_files:
+    test: /home/avettoruzzo/datasets/automin/automin_task_a_generated_en.csv
+
+# We only have a test split
+test_split: test
+
+output_type: generate_until
+
+doc_to_text: |
+  Meeting transcript:
+  {{transcript_text}}
+  ----------
+  Generate bullet‐point minutes:
+
+doc_to_target: |
+  {{gold_minutes}}
+
+generation_kwargs:
+  until:
+    - "\n\n"
+    - "<|end_of_minutes|>"
+
+metric_list:
+  - metric: rouge
+    aggregation: mean
+    higher_is_better: true
+
+metadata:
+  version: 1.0
