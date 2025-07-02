@@ -1,0 +1,42 @@
+#!/bin/bash
+#Set job requirements
+#SBATCH -J llama70bb-automin-en
+#SBATCH -t 01:30:00
+#SBATCH -p gpu_h100
+#SBATCH -n 1
+#SBATCH --gpus=2
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --mail-type=END
+#SBATCH --mail-user=a.vettoruzzo@tue.nl
+
+#Loading modules and environment
+module purge
+module load 2023 
+module load Python/3.11.3-GCCcore-12.3.0
+module load CUDA/12.4.0
+
+export VENV_PATH="automin-venv"
+source $VENV_PATH/bin/activate
+
+#Create output folder
+mkdir -p output/automin_task_a/en/0_shot/
+mkdir -p logs
+
+export WANDB_MODE=online
+export WANDB_ENTITY=oellm_tue
+export WANDB_PROJECT=lm-eval-harness
+export WANDB_API_KEY=d8f4d73ece59a02128ac2e05e6c0482676a5979f
+
+export HF_TOKEN=$(cat /home/avettoruzzo/.cache/huggingface/token)
+
+lm_eval --model hf \
+    --model_args "pretrained=meta-llama/Meta-Llama-3-70B-Instruct,trust_remote_code=True,parallelize=True"\
+    --tasks automin_task_a \
+    --num_fewshot 0 \
+    --device cuda \
+    --batch_size 1 \
+    --output_path output/automin_task_a/en/0_shot/ \
+    --wandb_args project=lm-eval-harness,name=automin_llama70b_en_0shot \
+    --log_samples \
+    --write_out \
+    --verbosity DEBUG
